@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.PROD ? import.meta.env.VITE_API_URL : '/api',
+  baseURL: 'https://weather-backend-19gt.onrender.com',
 });
 
 export const postQuery = async (message) => {
