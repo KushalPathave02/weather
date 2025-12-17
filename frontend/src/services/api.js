@@ -1,10 +1,12 @@
 import axios from 'axios';
 
-const API_URL = '/api';
+const apiClient = axios.create({
+  baseURL: import.meta.env.PROD ? import.meta.env.VITE_API_URL : '/api',
+});
 
 export const postQuery = async (message) => {
   try {
-    const response = await axios.post(`${API_URL}/chat`, { message });
+    const response = await apiClient.post('/chat', { message });
     return response.data;
   } catch (error) {
     console.error("Error fetching response from backend:", error);

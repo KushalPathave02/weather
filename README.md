@@ -54,3 +54,21 @@ To resolve this issue, we switched to the `mistral` model.
 *   **Compatibility**: It works seamlessly with our existing architecture without requiring any significant code refactoring.
 
 By simply changing the model name in our backend configuration from `llama3` to `mistral`, we were able to resolve the error and create a fully functional weather agent.
+
+## Deployment on Render
+
+This project is configured for easy deployment on Render using a `render.yaml` file.
+
+### Steps to Deploy
+
+1.  **Fork and Clone the Repository**: Fork this repository to your GitHub account and clone it to your local machine.
+
+2.  **Create a New Blueprint Instance on Render**:
+    *   Go to your Render Dashboard.
+    *   Click on **New +** and select **Blueprint**.
+    *   Connect your GitHub account and select the forked repository.
+    *   Render will automatically detect the `render.yaml` file and configure the services.
+
+3.  **Deploy**: Click **Create New Blueprint Instance** to deploy the application.
+
+Render will build and deploy both the frontend and backend services. The frontend will be automatically configured to communicate with the backend.

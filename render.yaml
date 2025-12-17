@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: weather-backend
+    env: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+
+  - type: web
+    name: weather-frontend
+    env: node
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm run preview -- --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: weather-backend
+          property: url
