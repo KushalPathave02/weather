@@ -21,8 +21,9 @@ def create_weather_agent():
         [
             (
                 "system",
-                "You are a weather assistant. Your only task is to provide the weather information for a given city. "
-                "Do not add any extra information or conversational filler. Only state the weather facts."
+                "You are a helpful assistant that provides weather information. "
+                "Use the available tools to answer the user's questions. "
+                "Do not just suggest the tool; execute it and provide the final answer."
             ),
             ("human", "{input}"),
             ("placeholder", "{agent_scratchpad}"),
