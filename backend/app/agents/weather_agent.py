@@ -1,4 +1,5 @@
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import Tool
 
 from app.tools.weather_tool import get_weather
@@ -10,12 +11,21 @@ def create_weather_agent():
 
     tools = [
         Tool(
-            name="Weather Tool",
+            name="get_weather",
             func=get_weather,
-            description="Use this tool to get weather information of a city"
+            description="Use this tool to get weather information for a specific city.",
         )
     ]
 
-    agent = create_react_agent(llm, tools)
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", "You are a helpful assistant that provides weather information."),
+            ("human", "{input}"),
+            ("placeholder", "{agent_scratchpad}"),
+        ]
+    )
 
-    return agent
+    agent = create_tool_calling_agent(llm, tools, prompt)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+    return agent_executor
