@@ -27,30 +27,62 @@ The application follows a simple client-server architecture:
 
 7.  **Display**: The frontend displays the agent's response to the user in the chat interface.
 
-## Model Selection: Mistral vs. LLaMA-3
+## Advanced Intent Handling
 
-During development, we initially used the `llama3` model from Ollama. However, we encountered a critical issue that prevented the application from functioning correctly.
+The agent has been enhanced with a sophisticated, multi-layered intent-filtering system to create a more intelligent and user-friendly experience. This system ensures that the agent responds appropriately to a wide range of user inputs.
 
-### The Problem with `llama3`
+The logic is as follows:
 
-The core of this application relies on a LangChain agent's ability to use tools. This capability is known as **tool-calling** or **function-calling**. When the agent receives a query like "what is the weather in Pune?", the LLM needs to understand that it should use the `weather_tool` to get the answer.
+1.  **Expanded Keyword Detection**: The system first checks if the user's prompt contains any weather-related keywords (e.g., "weather," "temperature," "cold," "hot," "rain"). This initial check helps to quickly identify weather-related intent.
 
-The specific version of `llama3` available through Ollama at the time of development **does not support tool-calling**. When our LangChain agent attempted to use the `weather_tool`, the `llama3` model rejected the request, resulting in a `400 Bad Request` error from the Ollama server with the message:
+2.  **Person-to-City Mapping**: If a weather-related keyword is found, the system then checks for the names of specific individuals (e.g., "Virat Kohli," "Narendra Modi"). If a known person is mentioned, their name is mapped to their city of residence (e.g., "Virat Kohli" → "Mumbai"). The prompt is then rewritten to be a direct weather query for that city (e.g., "weather in Mumbai").
 
-```
-ollama._types.ResponseError: registry.ollama.ai/library/llama3:latest does not support tools
-```
+3.  **City-Only Input**: If the prompt does not contain any weather-related keywords, the system makes a call to a geocoding API to determine if the input is a valid city name. If it is, the prompt is reformatted into a direct weather query (e.g., "pune" → "weather in pune").
 
-This is a limitation of the model itself, not a bug in our code.
+4.  **Default Response**: If the input is not a weather-related question, does not contain a known person, and is not a valid city, the system returns a default response. This response informs the user of the agent's capabilities and provides examples of supported prompts.
 
-### The Solution: Switching to `mistral`
+This multi-step process allows the agent to handle a variety of queries, from direct questions to more complex, indirect prompts, while gracefully managing off-topic requests.
 
-To resolve this issue, we switched to the `mistral` model.
+## Supported Test Cases
 
-**Why `mistral`?**
+The system has been tested and confirmed to handle the following categories of prompts:
 
-*   **Tool-Calling Support**: `mistral` is a powerful model that fully supports tool-calling, making it compatible with LangChain agents.
-*   **Performance**: It provides a great balance of performance and resource requirements for local development.
-*   **Compatibility**: It works seamlessly with our existing architecture without requiring any significant code refactoring.
+-   **Direct Weather Questions**: Standard questions that explicitly ask for weather information.
+    -   "What is the weather in Pune today?"
+    -   "Temperature in Mumbai"
+    -   "Will it rain in Delhi today?"
 
-By simply changing the model name in our backend configuration from `llama3` to `mistral`, we were able to resolve the error and create a fully functional weather agent.
+-   **Indirect Weather Questions**: Questions that imply a request for weather information without using direct keywords.
+    -   "Is it cold where Virat Kohli lives?"
+    -   "How hot is it in Sachin Tendulkar’s city?"
+    -   "Does it feel warm in New Delhi?"
+
+-   **City-Only Inputs**: Prompts that consist of only a city name.
+    -   "Pune"
+    -   "Mumbai"
+    -   "Delhi"
+
+-   **Non-Weather Questions**: Any prompts that are not related to weather. These are blocked, and a default response is provided.
+    -   "Tell me a joke"
+    -   "Who is the Prime Minister of India?"
+    -   "Explain Artificial Intelligence"
+
+## Technical Decisions
+
+### Model Selection: Ollama's `mistral` vs. `llama3`
+
+During development, we initially used the `llama3` model from Ollama. However, we encountered a critical issue: the version of `llama3` available at the time **did not support tool-calling**. This is a fundamental requirement for our LangChain agent, which needs to use a `weather_tool` to fetch data. Any attempt to use this tool with `llama3` resulted in a `400 Bad Request` error from the Ollama server.
+
+To resolve this, we switched to the `mistral` model, which fully supports tool-calling and integrates seamlessly with our LangChain agent.
+
+### Local Model (Ollama) vs. Cloud API (OpenRouter)
+
+We also considered using OpenRouter, a cloud-based service for accessing various LLMs. However, we faced a similar compatibility issue.
+
+**The Problem with OpenRouter**
+
+The LangChain framework, by default, includes a `tool_choice` field in its API requests to the LLM. The OpenRouter API, at the time of development, did not support this field, which resulted in a `422 Unprocessable Entity` error. While it is possible to customize the LangChain agent to remove this field, it would have required significant code refactoring.
+
+**The Solution: A Local Ollama Model**
+
+By using a locally hosted `mistral` model via Ollama, we achieved full compatibility with LangChain's tool-calling features out-of-the-box. This approach provided a more stable, cost-effective, and controlled environment for development, allowing us to build a robust and reliable weather agent without the need for complex workarounds.
