@@ -19,7 +19,11 @@ def create_weather_agent():
 
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", "You are a helpful assistant that provides weather information."),
+            (
+                "system",
+                "You are a weather assistant. Your only task is to provide the weather information for a given city. "
+                "Do not add any extra information or conversational filler. Only state the weather facts."
+            ),
             ("human", "{input}"),
             ("placeholder", "{agent_scratchpad}"),
         ]

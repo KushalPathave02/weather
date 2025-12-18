@@ -9,41 +9,53 @@ agent = create_weather_agent()
 class ChatRequest(BaseModel):
     message: str
 
+PERSON_CITY_MAP = {
+    "virat kohli": "mumbai",
+    "sachin tendulkar": "mumbai",
+    "narendra modi": "new delhi"
+}
 
-# ✅ simple weather intent check
 def is_weather_question(text: str) -> bool:
     weather_keywords = [
         "weather",
         "temperature",
         "temp",
+        "cold",
+        "hot",
+        "heat",
         "rain",
         "raining",
         "climate",
         "forecast",
         "humidity",
-        "wind"
+        "wind",
+        "cool",
+        "warm",
+        "chilly"
     ]
     text = text.lower()
     return any(word in text for word in weather_keywords)
 
-
 @router.post("/chat")
 def chat(req: ChatRequest):
-    user_input = req.message
+    user_input = req.message.lower()
 
-    # ❌ non-weather prompt
     if not is_weather_question(user_input):
         return {
             "response": (
-                "I can only help with weather-related questions 🌤️\n\n"
-                "Please try prompts like:\n"
-                "• What is the weather in Pune today?\n"
-                "• Temperature in Mumbai\n"
-                "• Will it rain in Delhi today?\n"
-                "• Weather forecast for Bangalore"
+                "I can only answer weather-related questions 🌤️\n\n"
+                "Try prompts like:\n"
+                "• Is it cold in Mumbai today?\n"
+                "• Weather of Pune today\n"
+                "• Will it rain in Delhi?\n"
+                "• Is it hot where Virat Kohli lives?"
             )
         }
 
-    # ✅ weather prompt → call agent
+    # resolve person → city
+    for person, city in PERSON_CITY_MAP.items():
+        if person in user_input:
+            user_input = f"weather in {city}"
+
     result = agent.invoke({"input": user_input})
     return {"response": result["output"]}
